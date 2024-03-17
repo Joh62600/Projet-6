@@ -90,6 +90,23 @@ document.addEventListener("DOMContentLoaded", function () {
         siteGallery.appendChild(workElement);
     });
 }
+
+function resetImagePreview() {
+  const imagePreview = document.getElementById("imagePreview");
+  const uploadLabel = document.getElementById("uploadLabel");
+
+  if (imagePreview) {
+    imagePreview.src = ''; // Efface la source de l'image de prévisualisation
+    imagePreview.style.display = "none"; // Cache l'image de prévisualisation
+  }
+
+  if (uploadLabel) {
+    uploadLabel.style.display = "block"; // Affiche à nouveau le label de téléchargement
+  }
+}
+
+
+
 function extractCategories(works) {
   const categories = works.map(work => work.category); // Extrait les catégories de chaque travail
   const uniqueCategories = [...new Set(categories)]; // Supprime les doublons
@@ -142,6 +159,8 @@ function extractCategories(works) {
   }
   fetchWorks();
 
+
+  
   function loadPhotoPreviews() {
     const photosContainer = document.getElementById("photosContainer");
     photosContainer.innerHTML = ""; 
@@ -149,6 +168,7 @@ function extractCategories(works) {
     worksTab.forEach((work) => {
         const photoPreview = document.createElement("div");
         photoPreview.classList.add("photo-preview");
+        photoPreview.setAttribute("data-id", work.id);
 
         
         const deleteIcon = document.createElement("i");
@@ -182,8 +202,28 @@ function extractCategories(works) {
         photosContainer.appendChild(photoPreview);
     });
 }
-function deleteWork(id) {
-  fetch(`http://localhost:5678/api/works/${id}`, {
+
+const photosContainer = document.getElementById("photosContainer");
+    if (photosContainer) {
+        photosContainer.addEventListener("click", function(event) {
+            // Utilisez `event.target` pour obtenir l'élément cliqué
+            let targetElement = event.target;
+
+            // Vérifiez si l'élément cliqué ou un parent est une icône de suppression
+            while (targetElement != null && !targetElement.matches(".fa-trash-can")) {
+                targetElement = targetElement.parentElement;
+            }
+
+            // Si un élément correspondant a été trouvé et a un attribut `data-id`
+            if (targetElement && targetElement.getAttribute("data-id")) {
+                const workId = targetElement.getAttribute("data-id");
+                deleteWork(workId); // Appeler votre fonction de suppression
+            }
+        });
+    }
+
+function deleteWork(workId) {
+  fetch(`http://localhost:5678/api/works/${workId}`, {
     method: "DELETE",
     headers: {
       'Authorization': `Bearer ${localStorage.getItem("userToken")}`,
@@ -193,17 +233,26 @@ function deleteWork(id) {
     if (!response.ok) {
       throw new Error("Erreur lors de la suppression de la photo");
     }
-    
-    document.querySelectorAll(`[data-id="${id}"]`).forEach(element => {
-     
-      const container = element.closest('.photo-preview, .work-item');
-      if (container) {
-        container.remove();
-      }
-    });
 
-    worksTab = worksTab.filter(work => work.id !== id); 
-    displayWorks(worksTab); 
+    //  supprimer l'élément de l'aperçu
+    const previewElement = document.querySelector(`.photo-preview[data-id="${workId}"]`);
+    console.log("Élément d'aperçu trouvé :", previewElement); 
+    if (previewElement) {
+      previewElement.remove();
+      console.log(`Élément d'aperçu avec ID ${workId} supprimé.`);
+    } else {
+      console.log(`Aucun élément d'aperçu avec ID ${workId} trouvé.`);
+    }
+
+    //  supprimer l'élément de la galerie
+    const galleryElement = document.querySelector(`.work-item[data-id="${workId}"]`);
+    console.log("Élément de galerie trouvé :", galleryElement);
+    if (galleryElement) {
+      galleryElement.remove();
+      console.log(`Élément de galerie avec ID ${workId} supprimé.`);
+    } else {
+      console.log(`Aucun élément de galerie avec ID ${workId} trouvé.`);
+    }
   })
   .catch(error => {
     console.error("Erreur lors de la suppression :", error);
@@ -211,12 +260,36 @@ function deleteWork(id) {
   });
 }
 
+function refreshPhotoList() {
+  const photosContainer = document.getElementById("photosContainer");
+  photosContainer.innerHTML = ""; 
+
+ 
+  fetchWorks();
+}
+
+function clearAddPhotoModal() {
+  // Réinitialiser les champs du formulaire
+  document.getElementById('newPhotoTitle').value = '';
+  document.getElementById('newPhotoCategory').selectedIndex = 0; // Réinitialiser au premier élément
+  document.getElementById('newPhotoFile').value = ''; // Réinitialiser le champ de fichier
+
+  // Appel à resetImagePreview pour réinitialiser l'aperçu de l'image
+  resetImagePreview();
+}
+
+modifElement.onclick = function () {
+  refreshPhotoList(); // Rafraîchit la liste à chaque ouverture de la modale
+  editModal.style.display = "block"; 
+};
+
   // Afficher la deuxième modale
   const addPhotoBtn = document.getElementById("addPhotoBtn");
   const addPhotoModal = document.getElementById("addPhotoModal");
   const secondModalClose = document.querySelector(".secondModalClose");
 
   addPhotoBtn.addEventListener("click", function () {
+    clearAddPhotoModal();
     addPhotoModal.style.display = "block";
   });
 
@@ -230,9 +303,10 @@ function deleteWork(id) {
       addPhotoModal.style.display = "none";
     }
   });
+  
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+
   const addPhotoBtn = document.getElementById("addPhotoBtn");
   const addPhotoModal = document.getElementById("addPhotoModal");
   const closeBtn = document.getElementsByClassName("close")[0];
@@ -240,6 +314,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Ouvrir la modale
   addPhotoBtn.addEventListener("click", () => {
     addPhotoModal.style.display = "block";
+    
   });
 
   // Fermer la modale
@@ -252,6 +327,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (event.target == addPhotoModal) {
       addPhotoModal.style.display = "none";
     }
+
+
+    
   });
 
 // Soumission du formulaire
@@ -286,6 +364,8 @@ if (addPhotoForm) {
     })
     .then(data => {
       console.log("Success:", data);
+      
+
 
       // Création du conteneur pour la nouvelle photo et son titre pour la galerie du site
       const photoContainer = document.createElement("div");
@@ -361,6 +441,7 @@ document
       });
     }
 
+
     const newPhotoFileInput = document.getElementById("newPhotoFile");
     if (newPhotoFileInput) {
       newPhotoFileInput.addEventListener("change", function (event) {
@@ -382,5 +463,38 @@ document
       });
     }
   });
+  const titleInput = document.getElementById("newPhotoTitle");
+  const categorySelect = document.getElementById("newPhotoCategory");
+  const fileInput = document.getElementById("newPhotoFile");
+  const validateButton = document.getElementById("valider_btn");
+
+  function updateValidateButton() {
+      // Vérifier si tous les champs sont remplis
+      if (titleInput.value && categorySelect.value && fileInput.files.length > 0) {
+          validateButton.style.backgroundColor = "#1D6154"; 
+          validateButton.disabled = false; 
+      } else {
+          validateButton.style.backgroundColor = "#A7A7A7"; 
+          validateButton.disabled = true; 
+      }
+  }
+
+  //  vérifier les changements
+  titleInput.addEventListener("input", updateValidateButton);
+  categorySelect.addEventListener("change", updateValidateButton);
+  fileInput.addEventListener("change", updateValidateButton);
+
+  document.querySelector('.back-arrow').addEventListener('click', function() {
+    document.getElementById('addPhotoModal').style.display = 'none'; 
+    document.getElementById('editModal').style.display = 'block'; 
   
-})
+  
+    document.getElementById("addPhotoBtn").addEventListener("click", function () {
+      document.getElementById("addPhotoModal").style.display = "block";
+      
+  });
+
+  
+  });
+
+

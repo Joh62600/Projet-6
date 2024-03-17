@@ -72,8 +72,9 @@
             </div>
           </div>
         </div>
-        <div id="addPhotoModal" class="modal">
+        <div id="addPhotoModal" class="modal ">
           <div class="modal-content2">
+            <i class="fa-solid fa-arrow-left back-arrow"></i>
             <span class="close secondModalClose">&times;</span>
             <h2 id="titre_modale2">Ajout photo</h2>
             <form id="newPhotoForm" enctype="multipart/form-data">
@@ -86,7 +87,9 @@
                 />
                 <div id="uploadLabel">
                   <i id="picture_i" class="fa-regular fa-image"></i>
-                  <label for="newPhotoFile">+ Ajouter photo</label>
+                  <div class="label_container">
+                  <label id="ajoutPhoto" for="newPhotoFile">+ Ajouter photo</label>
+                </div>
                   <p>jpg, png: 4mo max</p>
                 </div>
                 <img
