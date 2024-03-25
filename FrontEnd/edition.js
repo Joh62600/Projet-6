@@ -8,38 +8,38 @@ document.addEventListener("DOMContentLoaded", function () {
   const modifElement = document.getElementById("modif"); 
   const loginForm = document.getElementById("loginForm");
   
-  if (loginForm) {
-    loginForm.addEventListener("submit", function (event) {
-      event.preventDefault(); // Empêche le comportement par défaut 
-
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      fetch("http://localhost:5678/api/users/login", {
+  async function loginUser(event) {
+    event.preventDefault(); // Empêche le comportement par défaut
+  
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+  
+    try {
+      const response = await fetch("http://localhost:5678/api/users/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Erreur dans l’identifiant ou le mot de passe");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          console.log("Réponse de l’API:", data);
-          localStorage.setItem("userToken", data.token); // Stocke le token dans le localStorage
-          window.location.href = "./index.html?mode=edition"; // Redirige l'utilisateur en mode édition
-        })
-        .catch((error) => {
-          console.error(error);
-          document.getElementById("errorMessage").textContent = error.message;
-        });
-    });
+      });
+  
+      if (!response.ok) {
+        throw new Error("Erreur dans l’identifiant ou le mot de passe");
+      }
+  
+      const data = await response.json();
+      console.log("Réponse de l’API:", data);
+      localStorage.setItem("userToken", data.token); // Stocke le token dans le localStorage
+      window.location.href = "./index.html?mode=edition"; // Redirige l'utilisateur en mode édition
+    } catch (error) {
+      console.error(error);
+      document.getElementById("errorMessage").textContent = error.message;
+    }
   }
-
+  
+  if (loginForm) {
+    loginForm.addEventListener("submit", loginUser);
+  }
   // Gestion du changement de texte du bouton login/logout
   if (loginLogoutLink) {
     if (mode === "edition" && localStorage.getItem("userToken")) {
@@ -138,22 +138,19 @@ function extractCategories(works) {
     };
   }
   async function fetchWorks() {
-    fetch(worksUrl)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP! Statut: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        worksTab = data;
-        displayWorks(worksTab);
-        extractCategories(worksTab);
-        loadPhotoPreviews(); // Appeler ici pour charger les aperçus dans la modale
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    try {
+      const response = await fetch(worksUrl);
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP! Statut: ${response.status}`);
+      }
+      const data = await response.json();
+      worksTab = data;
+      displayWorks(worksTab);
+      extractCategories(worksTab);
+      loadPhotoPreviews(); // Appeler ici pour charger les aperçus dans la modale
+    } catch (error) {
+      console.error(error);
+    }
   }
   fetchWorks();
 
@@ -221,43 +218,41 @@ const photosContainer = document.getElementById("photosContainer");
         });
     }
 
-function deleteWork(workId) {
-  fetch(`http://localhost:5678/api/works/${workId}`, {
-    method: "DELETE",
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem("userToken")}`,
-    },
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error("Erreur lors de la suppression de la photo");
+    async function deleteWork(workId) {
+      try {
+        const response = await fetch(`http://localhost:5678/api/works/${workId}`, {
+          method: "DELETE",
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem("userToken")}`,
+          },
+        });
+    
+        if (!response.ok) {
+          throw new Error("Erreur lors de la suppression de la photo");
+        }
+    
+        // Supprimer l'élément de l'aperçu
+        const previewElement = document.querySelector(`.photo-preview[data-id="${workId}"]`);
+        if (previewElement) {
+          previewElement.remove();
+          console.log(`Élément d'aperçu avec ID ${workId} supprimé.`);
+        } else {
+          console.log(`Aucun élément d'aperçu avec ID ${workId} trouvé.`);
+        }
+    
+        // Supprimer l'élément de la galerie
+        const galleryElement = document.querySelector(`.work-item[data-id="${workId}"]`);
+        if (galleryElement) {
+          galleryElement.remove();
+          console.log(`Élément de galerie avec ID ${workId} supprimé.`);
+        } else {
+          console.log(`Aucun élément de galerie avec ID ${workId} trouvé.`);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la suppression :", error);
+        alert("La suppression a échoué : " + error.message);
+      }
     }
-
-    //  supprimer l'élément de l'aperçu
-    const previewElement = document.querySelector(`.photo-preview[data-id="${workId}"]`);
-    console.log("Élément d'aperçu trouvé :", previewElement); 
-    if (previewElement) {
-      previewElement.remove();
-      console.log(`Élément d'aperçu avec ID ${workId} supprimé.`);
-    } else {
-      console.log(`Aucun élément d'aperçu avec ID ${workId} trouvé.`);
-    }
-
-    //  supprimer l'élément de la galerie
-    const galleryElement = document.querySelector(`.work-item[data-id="${workId}"]`);
-    console.log("Élément de galerie trouvé :", galleryElement);
-    if (galleryElement) {
-      galleryElement.remove();
-      console.log(`Élément de galerie avec ID ${workId} supprimé.`);
-    } else {
-      console.log(`Aucun élément de galerie avec ID ${workId} trouvé.`);
-    }
-  })
-  .catch(error => {
-    console.error("Erreur lors de la suppression :", error);
-    alert("La suppression a échoué : " + error.message);
-  });
-}
 
 function refreshPhotoList() {
   const photosContainer = document.getElementById("photosContainer");

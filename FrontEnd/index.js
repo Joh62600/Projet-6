@@ -4,23 +4,20 @@ const worksUrl = "http://localhost:5678/api/works";
 let categoriesSet = new Set();
 
 document.addEventListener('DOMContentLoaded', function() {
-function fetchWorks() {
-  fetch(worksUrl)
-    .then((response) => {
+  async function fetchWorks() {
+    try {
+      const response = await fetch(worksUrl); // Attend que la requête fetch soit complétée
       if (!response.ok) {
         throw new Error(`Erreur HTTP! Statut: ${response.status}`);
       }
-      return response.json();
-    })
-    .then((data) => {
+      const data = await response.json(); // Attend que les données soient converties en JSON
       worksTab = data;
       displayWorks(worksTab);
       extractCategories(worksTab); // Extraire et générer les boutons de filtre de catégorie
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-}
+    } catch (error) {
+      console.error(error); // Gère les erreurs potentielles dans le bloc try
+    }
+  }
 
 function displayWorks(works) {
   gallery.innerHTML = "";
