@@ -5,14 +5,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const editBanner = document.getElementById("editBanner");
   const editModal = document.getElementById("editModal");
   const closeBtn = document.querySelector(".close");
-
-  // Ajout pour la gestion de l'élément #modif
   const modifElement = document.getElementById("modif"); 
-
   const loginForm = document.getElementById("loginForm");
+  
   if (loginForm) {
     loginForm.addEventListener("submit", function (event) {
-      event.preventDefault(); // Empêche le comportement par défaut du formulaire
+      event.preventDefault(); // Empêche le comportement par défaut 
 
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -101,7 +99,7 @@ function resetImagePreview() {
   }
 
   if (uploadLabel) {
-    uploadLabel.style.display = "block"; // Affiche à nouveau le label de téléchargement
+    uploadLabel.style.display = "flex"; // Affiche à nouveau le label de téléchargement
   }
 }
 
@@ -197,6 +195,7 @@ function extractCategories(works) {
         img.src = work.imageUrl;
         img.alt = work.title; 
 
+        
         photoPreview.appendChild(img);
         photoPreview.appendChild(deleteIcon); 
         photosContainer.appendChild(photoPreview);
@@ -206,10 +205,10 @@ function extractCategories(works) {
 const photosContainer = document.getElementById("photosContainer");
     if (photosContainer) {
         photosContainer.addEventListener("click", function(event) {
-            // Utilisez `event.target` pour obtenir l'élément cliqué
+      
             let targetElement = event.target;
 
-            // Vérifiez si l'élément cliqué ou un parent est une icône de suppression
+            
             while (targetElement != null && !targetElement.matches(".fa-trash-can")) {
                 targetElement = targetElement.parentElement;
             }
@@ -269,7 +268,7 @@ function refreshPhotoList() {
 }
 
 function clearAddPhotoModal() {
-  // Réinitialiser les champs du formulaire
+  
   document.getElementById('newPhotoTitle').value = '';
   document.getElementById('newPhotoCategory').selectedIndex = 0; // Réinitialiser au premier élément
   document.getElementById('newPhotoFile').value = ''; // Réinitialiser le champ de fichier
@@ -291,11 +290,13 @@ modifElement.onclick = function () {
   addPhotoBtn.addEventListener("click", function () {
     clearAddPhotoModal();
     addPhotoModal.style.display = "block";
+    editModal.style.display = "none";
   });
 
   // Fermer la deuxième modale
   secondModalClose.addEventListener("click", function () {
     addPhotoModal.style.display = "none";
+    
   });
 
   window.addEventListener("click", function (event) {
