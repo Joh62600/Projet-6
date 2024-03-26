@@ -33,9 +33,9 @@
         <p id="errorMessage"></p>
         <form id="loginForm" action="http://localhost:5678/api/users/login" method="post">
           <label for="name">Email</label>
-          <input type="text" name="email" id="email" />
+          <input type="text" name="email" id="email" autocomplete="current-email" />
           <label for="email">Mot de passe</label>
-          <input type="password" name="password" id="password" />
+          <input type="password" name="password" id="password"  autocomplete="current-password" />
           <input type="submit" value="Se connecter"/>
           <p id="forgot">Mot de passe oublié </p>
         </form>
@@ -49,5 +49,6 @@
       </nav>
     </footer>
     <script src="./edition.js" ></script>
+    
   </body>
 </html>

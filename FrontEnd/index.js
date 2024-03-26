@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
       displayWorks(worksTab);
       extractCategories(worksTab); // Extraire et générer les boutons de filtre de catégorie
     } catch (error) {
-      console.error(error); // Gère les erreurs potentielles dans le bloc try
+      console.error(error); // Gère les erreurs
     }
   }
 
@@ -125,7 +125,7 @@ const addPhotoForm = document.getElementById('addPhotoForm');
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Photo ajoutée avec succès:', data);
+                
                 worksTab.push(data); // Ajouter la nouvelle photo à worksTab
                 displayWorks(worksTab); // Mettre à jour l'affichage
                 document.getElementById('editModal').style.display = 'none'; // Fermer la modale
